@@ -1,22 +1,38 @@
-# Etapa 1: construir el proyecto
-FROM gradle:8.7-jdk17 AS build
+# ----- 1. Etapa de "Build" (Construccion) -----
+# Usamos una imagen de Java 17 (JDK) para compilar el proyecto
+FROM eclipse-temurin:17-jdk-jammy AS builder
+
+# Establecemos el directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# Copiamos todo el contenido del proyecto
-COPY . .
+# Copiamos los archivos de Gradle
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle .
+COPY settings.gradle .
 
-# Construimos el .jar sin correr tests
-RUN gradle clean build -x test
+# Copiamos el código fuente de la aplicación
+COPY src src
 
-# Etapa 2: imagen final más liviana
-FROM eclipse-temurin:17-jdk
+# Damos permisos de ejecución al wrapper de Gradle
+RUN chmod +x ./gradlew
+
+# Corremos el comando de Gradle para crear el .jar
+# "bootJar" es la tarea específica de Spring Boot
+RUN ./gradlew bootJar --no-daemon
+
+# ----- 2. Etapa de "Runtime" (Ejecución) -----
+# Usamos una imagen de Java 17 (JRE) que es más ligera
+FROM eclipse-temurin:17-jre-jammy
+
+# Establecemos el directorio de trabajo
 WORKDIR /app
 
-# Copiamos el jar generado desde la etapa anterior
-COPY --from=build /app/build/libs/*.jar app.jar
-
-# Exponemos el puerto configurado en application.properties
+# Exponemos el puerto 8080 (el que usa Spring Boot por defecto)
 EXPOSE 8080
 
-# Comando para ejecutar el backend
+# Copiamos SÓLO el .jar compilado desde la etapa "builder"
+COPY --from=builder /app/build/libs/*.jar app.jar
+
+# El comando para iniciar la aplicación cuando se corra el contenedor
 ENTRYPOINT ["java", "-jar", "app.jar"]
