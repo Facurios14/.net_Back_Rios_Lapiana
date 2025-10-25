@@ -1,0 +1,14 @@
+package com.TrabajoFinal.TF.entity.DTO;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+public class DetallePedidoResponseDto {
+    private Long id;
+    private String productoNombre;
+    private Double precioUnitario;
+    private Integer cantidad;
+    private Double subtotal;
+}
