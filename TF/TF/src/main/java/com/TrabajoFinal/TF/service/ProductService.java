@@ -32,14 +32,16 @@ public class ProductService {
         Product product = Product.builder()
                 .name(dto.getName())
                 .price(dto.getPrice())
+                .imageUrl(dto.getImageUrl()) //Í
                 .category(category)
+                .stock(dto.getStock())
+                .status(dto.getStatus())
                 .build();
 
         productRepository.save(product);
         return ProductDTO.fromEntity(product);
     }
 
-    // ✅ Nuevo metodo update
     public ProductDTO update(Long id, ProductDTO dto) {
         Product existing = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
@@ -52,6 +54,9 @@ public class ProductService {
 
         existing.setName(dto.getName());
         existing.setPrice(dto.getPrice());
+        existing.setImageUrl(dto.getImageUrl()); //
+        existing.setStock(dto.getStock());
+        existing.setStatus(dto.getStatus());
 
         productRepository.save(existing);
         return ProductDTO.fromEntity(existing);
@@ -73,9 +78,7 @@ public class ProductService {
     public void delete(Long id) {
         productRepository.deleteById(id);
     }
-
 }
-
 
 
 

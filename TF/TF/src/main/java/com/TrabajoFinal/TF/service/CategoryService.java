@@ -3,6 +3,7 @@ package com.TrabajoFinal.TF.service;
 import com.TrabajoFinal.TF.entity.Category;
 import com.TrabajoFinal.TF.entity.DTO.CategoryDTO;
 import com.TrabajoFinal.TF.repository.CategoryRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,18 +18,19 @@ public class CategoryService {
         this.repository = repository;
     }
 
-    public CategoryDTO create(String name) {
+    public CategoryDTO create(CategoryDTO dto) {
         Category category = Category.builder()
-                .name(name)
+                .name(dto.getName())
+                .imageUrl(dto.getImageUrl()) // Guardamos la imagen
                 .build();
 
         Category saved = repository.save(category);
-        return CategoryDTO.fromEntity(saved); // ✅ cambio aquí
+        return CategoryDTO.fromEntity(saved);
     }
 
     public List<CategoryDTO> findAll() {
         return repository.findAll().stream()
-                .map(CategoryDTO::fromEntity) // ✅ y aquí también
+                .map(CategoryDTO::fromEntity)
                 .collect(Collectors.toList());
     }
 
@@ -41,17 +43,15 @@ public class CategoryService {
     }
 
     public CategoryDTO update(Long id, CategoryDTO dto) {
-        // Busca la categoría por ID y usa .map() para actualizarla si existe
         return repository.findById(id)
                 .map(category -> {
-                    // Actualiza solo el campo 'name' con el valor del DTO
                     category.setName(dto.getName());
+                    category.setImageUrl(dto.getImageUrl()); // Actualizamos la imagen
 
-                    // Guarda la entidad actualizada y mapea el resultado a DTO
                     Category saved = repository.save(category);
                     return CategoryDTO.fromEntity(saved);
                 })
-                .orElseThrow(() -> new RuntimeException("Categoría con ID " + id + " no encontrada")); // Manejo de error si no existe
+                .orElseThrow(() -> new RuntimeException("Categoría con ID " + id + " no encontrada"));
     }
 
 /*    public Category update(Long id, Category updatedCategory) {

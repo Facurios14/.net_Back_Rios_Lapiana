@@ -22,7 +22,7 @@ public class ProductController {
         return service.create(dto);
     }
 
-    @PutMapping("/{id}") // ✅ Nuevo endpoint para actualizar
+    @PutMapping("/{id}") //actualizar
     public ProductDTO update(@PathVariable Long id, @RequestBody ProductDTO dto) {
         return service.update(id, dto);
     }
@@ -32,7 +32,7 @@ public class ProductController {
         return service.findAll();
     }
 
-    @GetMapping("/{id}") // 🔍 opcional, obtener un solo producto
+    @GetMapping("/{id}")
     public ProductDTO getById(@PathVariable Long id) {
         return service.findById(id);
     }

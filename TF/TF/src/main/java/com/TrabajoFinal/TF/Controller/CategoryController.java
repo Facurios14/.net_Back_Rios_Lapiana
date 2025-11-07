@@ -21,7 +21,7 @@ public class CategoryController {
 
     @PostMapping
     public CategoryDTO create(@RequestBody CategoryDTO dto) {
-        return service.create(dto.getName());
+        return service.create(dto);
     }
 
     @GetMapping

@@ -9,19 +9,19 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Product {
+public class OrderItem {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    private Integer quantity;
     private Double price;
-    private String imageUrl;
-    private Integer stock;
-    private String status;
 
     @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
-}
+    private Product product;
 
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
+}
