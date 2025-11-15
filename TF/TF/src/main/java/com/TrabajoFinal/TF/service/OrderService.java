@@ -35,61 +35,79 @@ public class OrderService {
         this.userRepository = userRepository;
     }
 
+     // Recibe el DTO completo desde el modal del frontend.
+
     public OrderDTO createOrder(OrderDTO orderDTO) {
 
-        // 1️⃣ Obtener usuario
+        //  Obtener usuario
         User user = userRepository.findById(orderDTO.getUserId())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // 2️⃣ Crear el pedido
+        // Crear el pedido y SETEAR LOS DATOS DEL CHECKOUT
         Order order = new Order();
         order.setUser(user);
         order.setCreatedAt(LocalDateTime.now());
+        order.setAddress(orderDTO.getAddress());
+        order.setPhone(orderDTO.getPhone());
+        order.setPaymentMethod(orderDTO.getPaymentMethod());
+        order.setNotes(orderDTO.getNotes());
+        order.setStatus("PENDIENTE"); // Estado inicial
 
+        // Guardamos el pedido para obtener un ID
         order = orderRepository.save(order);
 
         List<OrderItem> orderItemList = new ArrayList<>();
+        double totalPedido = 0.0;
 
-        // 3️⃣ Procesar cada item del pedido
+        // Procesar cada item del pedido
         for (OrderItemDTO itemDTO : orderDTO.getItems()) {
 
-            Product product = productRepository.findById(itemDTO.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+            // El frontend envía productId, no id
+            Long productId = itemDTO.getProductId();
+            if (productId == null) {
+                throw new RuntimeException("El item del carrito no tiene productId");
+            }
+
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + productId));
 
             // Validar stock
             if (product.getStock() < itemDTO.getQuantity()) {
                 throw new RuntimeException("Stock insuficiente para el producto: " + product.getName());
             }
 
-            // 4️⃣ Descontar stock
+            // Descontar stock
             product.setStock(product.getStock() - itemDTO.getQuantity());
 
-            // 5️⃣ Actualizar estado en base al stock
+            //  Actualizar estado en base al stock
             if (product.getStock() <= 0) {
                 product.setStock(0);
                 product.setStatus("NO_DISPONIBLE");
-            } else {
-                product.setStatus("DISPONIBLE");
             }
 
             productRepository.save(product);
 
-            // 6️⃣ Crear el item del pedido
+            //Crear el item del pedido
             OrderItem orderItem = new OrderItem();
             orderItem.setProduct(product);
             orderItem.setOrder(order);
             orderItem.setPrice(product.getPrice());
             orderItem.setQuantity(itemDTO.getQuantity());
-
             orderItem = orderItemRepository.save(orderItem);
-
             orderItemList.add(orderItem);
+
+            totalPedido += (product.getPrice() * itemDTO.getQuantity());
         }
 
-        // 7️⃣ Asociar items al pedido
+        // total y la lista de items al pedido
+        order.setTotal(totalPedido);
         order.setItems(orderItemList);
 
-        return OrderDTO.fromEntity(order);
+        // Volvemos a guardar el pedido para actualizar el total
+        Order savedOrder = orderRepository.save(order);
+
+        // Devolvemos el DTO completo
+        return OrderDTO.fromEntity(savedOrder);
     }
 
     public List<OrderDTO> getOrdersByUser(Long userId) {
@@ -98,6 +116,25 @@ public class OrderService {
                 .map(OrderDTO::fromEntity)
                 .toList();
     }
+    //parte admin
+    public List<OrderDTO> getAllOrders() {
+        return orderRepository.findAll()
+                .stream()
+                .map(OrderDTO::fromEntity)
+                .toList();
+    }
+
+    public OrderDTO updateOrderStatus(Long orderId, String newStatus) {
+        // Busca el pedido
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Pedido no encontrado con ID: " + orderId));
+
+        order.setStatus(newStatus);
+
+        Order updatedOrder = orderRepository.save(order);
+        return OrderDTO.fromEntity(updatedOrder);
+    }
+
 }
 
 

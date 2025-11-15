@@ -26,5 +26,12 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> items;
+
+    private String address;
+    private String phone;
+    private String paymentMethod;
+    private String notes;
+    private Double total;
+    private String status;
 }
 

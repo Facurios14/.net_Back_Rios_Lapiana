@@ -16,6 +16,12 @@ public class OrderDTO {
     private Long userId;
     private LocalDateTime createdAt;
     private List<OrderItemDTO> items;
+    private String address;
+    private String phone;
+    private String paymentMethod;
+    private String notes;
+    private Double total;
+    private String status;
 
     public static OrderDTO fromEntity(Order order) {
         OrderDTO dto = new OrderDTO();
@@ -29,7 +35,12 @@ public class OrderDTO {
                         .map(OrderItemDTO::fromEntity)
                         .toList()
         );
-
+        dto.setAddress(order.getAddress());
+        dto.setPhone(order.getPhone());
+        dto.setPaymentMethod(order.getPaymentMethod());
+        dto.setNotes(order.getNotes());
+        dto.setTotal(order.getTotal());
+        dto.setStatus(order.getStatus());
         return dto;
     }
 }
